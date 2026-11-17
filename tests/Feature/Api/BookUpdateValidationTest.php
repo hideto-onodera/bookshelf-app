@@ -30,7 +30,7 @@ class BookUpdateValidationTest extends TestCase
             throw new RuntimeException('Testing database is required.');
         }
 
-        if (!empty(config('database.connections.mysql.url'))) {
+        if (! empty(config('database.connections.mysql.url'))) {
             throw new RuntimeException('Database URL must be empty.');
         }
 
@@ -88,7 +88,7 @@ class BookUpdateValidationTest extends TestCase
         );
 
         $response = $this->putJson(
-            '/api/v1/books/' . $book->id,
+            '/api/v1/books/'.$book->id,
             $payload
         );
 
@@ -120,7 +120,7 @@ class BookUpdateValidationTest extends TestCase
         $payload['genres'] = [999999999];
 
         $response = $this->putJson(
-            '/api/v1/books/' . $book->id,
+            '/api/v1/books/'.$book->id,
             $payload
         );
 
@@ -139,7 +139,7 @@ class BookUpdateValidationTest extends TestCase
         $book = $this->createBook($user, '9784000111104');
 
         $response = $this->putJson(
-            '/api/v1/books/' . $book->id,
+            '/api/v1/books/'.$book->id,
             []
         );
 

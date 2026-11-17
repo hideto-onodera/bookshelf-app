@@ -16,7 +16,7 @@ class BookModelTest extends TestCase
 {
     public function test_book_belongs_to_user(): void
     {
-        $book = new Book();
+        $book = new Book;
 
         $relation = $book->user();
 
@@ -27,7 +27,7 @@ class BookModelTest extends TestCase
 
     public function test_book_belongs_to_many_genres(): void
     {
-        $book = new Book();
+        $book = new Book;
 
         $relation = $book->genres();
 
@@ -38,7 +38,7 @@ class BookModelTest extends TestCase
 
     public function test_book_has_many_reviews(): void
     {
-        $book = new Book();
+        $book = new Book;
 
         $relation = $book->reviews();
 
@@ -49,7 +49,7 @@ class BookModelTest extends TestCase
 
     public function test_book_belongs_to_many_favoriting_users(): void
     {
-        $book = new Book();
+        $book = new Book;
 
         $relation = $book->favoritedByUsers();
 
@@ -60,7 +60,7 @@ class BookModelTest extends TestCase
 
     public function test_published_date_is_cast_to_date(): void
     {
-        $book = new Book();
+        $book = new Book;
 
         $book->published_date = '2026-11-15';
 
@@ -73,7 +73,7 @@ class BookModelTest extends TestCase
 
     public function test_book_has_expected_fillable_attributes(): void
     {
-        $book = new Book();
+        $book = new Book;
 
         $this->assertSame(
             [

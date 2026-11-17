@@ -11,7 +11,7 @@ class GenreModelTest extends TestCase
 {
     public function test_genre_belongs_to_many_books(): void
     {
-        $genre = new Genre();
+        $genre = new Genre;
 
         $relation = $genre->books();
 
@@ -22,7 +22,7 @@ class GenreModelTest extends TestCase
 
     public function test_genre_has_expected_fillable_attributes(): void
     {
-        $genre = new Genre();
+        $genre = new Genre;
 
         $this->assertSame(
             ['name'],
@@ -32,7 +32,7 @@ class GenreModelTest extends TestCase
 
     public function test_genre_uses_expected_table(): void
     {
-        $genre = new Genre();
+        $genre = new Genre;
 
         $this->assertSame('genres', $genre->getTable());
     }

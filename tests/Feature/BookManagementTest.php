@@ -30,7 +30,7 @@ class BookManagementTest extends TestCase
             throw new RuntimeException('Testing database is required.');
         }
 
-        if (!empty(config('database.connections.mysql.url'))) {
+        if (! empty(config('database.connections.mysql.url'))) {
             throw new RuntimeException('Database URL must be empty.');
         }
 

@@ -126,10 +126,10 @@ class ReviewSeeder extends Seeder
         foreach ($reviews as $bookIndex => $bookData) {
             $book = Book::where('isbn', $bookData['isbn'])->first();
 
-            if (!$book) {
+            if (! $book) {
                 throw new RuntimeException(
                     'レビュー対象の書籍が存在しません: '
-                    . $bookData['isbn']
+                    .$bookData['isbn']
                 );
             }
 

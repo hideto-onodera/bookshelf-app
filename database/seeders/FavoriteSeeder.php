@@ -50,10 +50,10 @@ class FavoriteSeeder extends Seeder
         foreach ($favorites as $email => $isbns) {
             $user = User::where('email', $email)->first();
 
-            if (!$user) {
+            if (! $user) {
                 throw new RuntimeException(
                     'お気に入り登録対象のユーザーが存在しません: '
-                    . $email
+                    .$email
                 );
             }
 
@@ -62,7 +62,7 @@ class FavoriteSeeder extends Seeder
             if ($books->count() !== count($isbns)) {
                 throw new RuntimeException(
                     'お気に入り登録対象の書籍が不足しています: '
-                    . $email
+                    .$email
                 );
             }
 

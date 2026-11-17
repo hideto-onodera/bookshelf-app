@@ -30,7 +30,7 @@ class RankingTest extends TestCase
             throw new RuntimeException('Testing database is required.');
         }
 
-        if (!empty(config('database.connections.mysql.url'))) {
+        if (! empty(config('database.connections.mysql.url'))) {
             throw new RuntimeException('Database URL must be empty.');
         }
 
@@ -46,7 +46,7 @@ class RankingTest extends TestCase
     private function createBook(User $owner, int $number): Book
     {
         return Book::create([
-            'title' => 'ランキングテスト書籍' . $number,
+            'title' => 'ランキングテスト書籍'.$number,
             'author' => 'テスト著者',
             'isbn' => sprintf('978400001%04d', $number),
             'published_date' => '2026-01-01',
@@ -125,7 +125,7 @@ class RankingTest extends TestCase
                 $unreviewed
             ) {
                 return $books->contains('id', $reviewed->id)
-                    && !$books->contains('id', $unreviewed->id);
+                    && ! $books->contains('id', $unreviewed->id);
             });
     }
 

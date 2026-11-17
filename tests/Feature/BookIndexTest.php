@@ -30,7 +30,7 @@ class BookIndexTest extends TestCase
             throw new RuntimeException('Testing database is required.');
         }
 
-        if (!empty(config('database.connections.mysql.url'))) {
+        if (! empty(config('database.connections.mysql.url'))) {
             throw new RuntimeException('Database URL must be empty.');
         }
 
@@ -46,7 +46,7 @@ class BookIndexTest extends TestCase
     private function createBook(User $owner, int $number): Book
     {
         return Book::create([
-            'title' => '書籍一覧テスト書籍' . $number,
+            'title' => '書籍一覧テスト書籍'.$number,
             'author' => '書籍一覧テスト著者',
             'isbn' => sprintf('978400000%04d', $number),
             'published_date' => '2026-01-01',

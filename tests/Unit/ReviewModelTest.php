@@ -13,7 +13,7 @@ class ReviewModelTest extends TestCase
 {
     public function test_review_belongs_to_book(): void
     {
-        $review = new Review();
+        $review = new Review;
 
         $relation = $review->book();
 
@@ -24,7 +24,7 @@ class ReviewModelTest extends TestCase
 
     public function test_review_belongs_to_user(): void
     {
-        $review = new Review();
+        $review = new Review;
 
         $relation = $review->user();
 
@@ -35,7 +35,7 @@ class ReviewModelTest extends TestCase
 
     public function test_review_belongs_to_many_liking_users(): void
     {
-        $review = new Review();
+        $review = new Review;
 
         $relation = $review->likedByUsers();
 
@@ -46,7 +46,7 @@ class ReviewModelTest extends TestCase
 
     public function test_rating_is_cast_to_integer(): void
     {
-        $review = new Review();
+        $review = new Review;
 
         $review->rating = '5';
 
@@ -55,7 +55,7 @@ class ReviewModelTest extends TestCase
 
     public function test_review_has_expected_fillable_attributes(): void
     {
-        $review = new Review();
+        $review = new Review;
 
         $this->assertSame(
             [

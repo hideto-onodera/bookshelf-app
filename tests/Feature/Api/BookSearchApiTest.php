@@ -30,7 +30,7 @@ class BookSearchApiTest extends TestCase
             throw new RuntimeException('Testing database is required.');
         }
 
-        if (!empty(config('database.connections.mysql.url'))) {
+        if (! empty(config('database.connections.mysql.url'))) {
             throw new RuntimeException('Database URL must be empty.');
         }
 
@@ -78,7 +78,7 @@ class BookSearchApiTest extends TestCase
         );
 
         $response = $this->getJson(
-            '/api/v1/books?keyword=' . urlencode('特別な検索対象')
+            '/api/v1/books?keyword='.urlencode('特別な検索対象')
         );
 
         $response->assertOk()
@@ -110,7 +110,7 @@ class BookSearchApiTest extends TestCase
         );
 
         $response = $this->getJson(
-            '/api/v1/books?keyword=' . urlencode('特別な検索対象著者')
+            '/api/v1/books?keyword='.urlencode('特別な検索対象著者')
         );
 
         $response->assertOk()
@@ -148,7 +148,7 @@ class BookSearchApiTest extends TestCase
         $other->genres()->attach($otherGenre->id);
 
         $response = $this->getJson(
-            '/api/v1/books?genre_id=' . $targetGenre->id
+            '/api/v1/books?genre_id='.$targetGenre->id
         );
 
         $response->assertOk()
@@ -183,8 +183,8 @@ class BookSearchApiTest extends TestCase
 
         $response = $this->getJson(
             '/api/v1/books?keyword='
-            . urlencode('複合検索一致')
-            . '&genre_id=' . $genre->id
+            .urlencode('複合検索一致')
+            .'&genre_id='.$genre->id
         );
 
         $response->assertOk()
@@ -199,7 +199,7 @@ class BookSearchApiTest extends TestCase
         for ($i = 1; $i <= 5; $i++) {
             $this->createBook(
                 $user,
-                'ページ分割テスト書籍' . $i,
+                'ページ分割テスト書籍'.$i,
                 '著者',
                 200000 + $i
             );

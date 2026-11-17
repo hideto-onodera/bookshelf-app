@@ -13,7 +13,7 @@ class UserModelTest extends TestCase
 {
     public function test_user_has_many_books(): void
     {
-        $user = new User();
+        $user = new User;
 
         $relation = $user->books();
 
@@ -24,7 +24,7 @@ class UserModelTest extends TestCase
 
     public function test_user_has_many_reviews(): void
     {
-        $user = new User();
+        $user = new User;
 
         $relation = $user->reviews();
 
@@ -35,7 +35,7 @@ class UserModelTest extends TestCase
 
     public function test_user_belongs_to_many_favorite_books(): void
     {
-        $user = new User();
+        $user = new User;
 
         $relation = $user->favoriteBooks();
 
@@ -46,7 +46,7 @@ class UserModelTest extends TestCase
 
     public function test_user_belongs_to_many_liked_reviews(): void
     {
-        $user = new User();
+        $user = new User;
 
         $relation = $user->likedReviews();
 
@@ -57,7 +57,7 @@ class UserModelTest extends TestCase
 
     public function test_user_has_expected_fillable_attributes(): void
     {
-        $user = new User();
+        $user = new User;
 
         $this->assertSame(
             [
