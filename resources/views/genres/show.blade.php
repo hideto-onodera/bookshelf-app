@@ -1,48 +1,73 @@
 <x-app-layout>
     <x-slot name="header">
         <h2 class="font-semibold text-xl text-gray-800 leading-tight">
-            ジャンル: {{ $genre->name }}
+            ジャンル詳細
         </h2>
     </x-slot>
 
     <div class="py-12">
-        <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">
-            <div class="mb-4">
-                <a href="{{ route('books.index') }}" class="text-blue-600 hover:text-blue-800">← 書籍一覧に戻る</a>
-            </div>
-
+        <div class="max-w-5xl mx-auto sm:px-6 lg:px-8">
             <div class="bg-white overflow-hidden shadow-sm sm:rounded-lg">
                 <div class="p-6 text-gray-900">
-                    @if($books->isEmpty())
-                        <p>このジャンルの書籍はまだ登録されていません。</p>
-                    @else
-                        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                            @foreach($books as $book)
-                                <a href="{{ route('books.show', $book) }}" class="block border rounded-lg p-4 shadow hover:shadow-lg transition">
-                                    @if($book->image_url)
-                                        <img src="{{ $book->image_url }}" alt="{{ $book->title }}" class="w-full h-48 object-cover mb-4 rounded">
-                                    @else
-                                        <div class="w-full h-48 bg-gray-200 flex items-center justify-center mb-4 rounded">
-                                            <span class="text-gray-500">画像なし</span>
-                                        </div>
-                                    @endif
-                                    <h3 class="font-bold text-lg mb-2 text-blue-600">{{ $book->title }}</h3>
-                                    <p class="text-gray-600 text-sm mb-2">{{ $book->author }}</p>
-                                    <div class="flex flex-wrap gap-1">
-                                        @foreach($book->genres as $g)
-                                            <span class="bg-gray-200 text-gray-700 text-xs px-2 py-1 rounded {{ $g->id === $genre->id ? 'bg-blue-200 text-blue-700' : '' }}">
-                                                {{ $g->name }}
-                                            </span>
-                                        @endforeach
-                                    </div>
-                                </a>
-                            @endforeach
+                    <div class="flex items-center justify-between mb-6">
+                        <div>
+                            <h3 class="text-xl font-bold">
+                                {{ $genre->name }}
+                            </h3>
+                            <p class="text-sm text-gray-500 mt-2">
+                                登録書籍数：{{ $books->total() }}件
+                            </p>
                         </div>
 
-                        <div class="mt-6">
-                            {{ $books->links() }}
+                        <a href="{{ route('genres.index') }}"
+                            class="text-blue-600 hover:underline">
+                            ジャンル一覧に戻る
+                        </a>
+                    </div>
+
+                    <div class="flex gap-4 mb-8">
+                        <a href="{{ route('genres.edit', $genre) }}"
+                            class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded">
+                            編集する
+                        </a>
+
+                        <form action="{{ route('genres.destroy', $genre) }}"
+                            method="POST"
+                            onsubmit="return confirm('このジャンルを削除しますか？')">
+                            @csrf
+                            @method('DELETE')
+
+                            <button type="submit"
+                                class="bg-red-500 hover:bg-red-700 text-white font-bold py-2 px-4 rounded">
+                                削除する
+                            </button>
+                        </form>
+                    </div>
+
+                    <h4 class="text-lg font-semibold mb-4">
+                        このジャンルの書籍
+                    </h4>
+
+                    @forelse ($books as $book)
+                        <div class="border-b border-gray-200 py-4">
+                            <a href="{{ route('books.show', $book) }}"
+                                class="text-blue-600 hover:underline font-semibold">
+                                {{ $book->title }}
+                            </a>
+
+                            <p class="text-sm text-gray-600 mt-1">
+                                著者：{{ $book->author }}
+                            </p>
                         </div>
-                    @endif
+                    @empty
+                        <p class="text-gray-500">
+                            このジャンルに登録されている書籍はありません。
+                        </p>
+                    @endforelse
+
+                    <div class="mt-6">
+                        {{ $books->links() }}
+                    </div>
                 </div>
             </div>
         </div>

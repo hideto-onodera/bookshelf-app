@@ -1,48 +1,65 @@
 <x-app-layout>
     <x-slot name="header">
         <h2 class="font-semibold text-xl text-gray-800 leading-tight">
-            {{ __('レビューの編集') }}
+            レビュー編集
         </h2>
     </x-slot>
 
     <div class="py-12">
-        <div class="max-w-2xl mx-auto sm:px-6 lg:px-8">
+        <div class="max-w-3xl mx-auto sm:px-6 lg:px-8">
             <div class="bg-white overflow-hidden shadow-sm sm:rounded-lg">
                 <div class="p-6 text-gray-900">
-                    <div class="mb-4">
-                        <p class="text-gray-600">書籍: <span class="font-semibold">{{ $review->book->title }}</span></p>
-                    </div>
+                    <h3 class="text-lg font-semibold mb-6">
+                        {{ $review->book->title }} のレビューを編集
+                    </h3>
 
                     <form action="{{ route('reviews.update', $review) }}" method="POST" novalidate>
                         @csrf
                         @method('PUT')
 
-                        <div class="mb-4">
-                            <label class="block text-sm font-medium text-gray-700 mb-2">評価 <span class="text-red-500">*</span></label>
-                            <div class="flex gap-2">
-                                @for($i = 1; $i <= 5; $i++)
-                                    <label class="cursor-pointer">
-                                        <input type="radio" name="rating" value="{{ $i }}" class="sr-only peer" {{ old('rating', $review->rating) == $i ? 'checked' : '' }} required>
-                                        <span class="text-2xl peer-checked:text-yellow-400 text-gray-300 hover:text-yellow-400">★</span>
-                                    </label>
+                        <div class="mb-6">
+                            <label for="rating" class="block text-sm font-medium text-gray-700 mb-2">
+                                評価
+                            </label>
+
+                            <select name="rating" id="rating"
+                                class="border-gray-300 rounded-md shadow-sm w-full">
+                                <option value="">選択してください</option>
+                                @for ($i = 5; $i >= 1; $i--)
+                                    <option value="{{ $i }}"
+                                        {{ (string) old('rating', $review->rating) === (string) $i ? 'selected' : '' }}>
+                                        {{ str_repeat('★', $i) }}{{ str_repeat('☆', 5 - $i) }} ({{ $i }})
+                                    </option>
                                 @endfor
-                            </div>
+                            </select>
+
                             @error('rating')
-                                <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
+                                <p class="text-sm text-red-600 mt-2">{{ $message }}</p>
                             @enderror
                         </div>
 
-                        <div class="mb-4">
-                            <label for="comment" class="block text-sm font-medium text-gray-700 mb-2">コメント</label>
-                            <textarea name="comment" id="comment" rows="4" class="w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500">{{ old('comment', $review->comment) }}</textarea>
+                        <div class="mb-6">
+                            <label for="comment" class="block text-sm font-medium text-gray-700 mb-2">
+                                コメント
+                            </label>
+
+                            <textarea name="comment" id="comment" rows="5"
+                                class="border-gray-300 rounded-md shadow-sm w-full"
+                                placeholder="この書籍の感想を書いてください">{{ old('comment', $review->comment) }}</textarea>
+
                             @error('comment')
-                                <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
+                                <p class="text-sm text-red-600 mt-2">{{ $message }}</p>
                             @enderror
                         </div>
 
-                        <div class="flex items-center justify-end">
-                            <a href="{{ route('books.show', $review->book) }}" class="text-gray-600 hover:text-gray-900 mr-4">キャンセル</a>
-                            <button type="submit" class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded">
+                        <div class="flex items-center justify-end gap-4">
+                            <a href="{{ route('books.show', $review->book_id) }}"
+                                class="text-gray-600 hover:text-gray-900">
+                                キャンセル
+                            </a>
+
+                            <button type="submit"
+                                class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded">
                                 更新する
                             </button>
                         </div>

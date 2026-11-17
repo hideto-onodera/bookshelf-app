@@ -3,6 +3,7 @@
 namespace App\Http\Requests;
 
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Validation\Rule;
 
 class StoreGenreRequest extends FormRequest
 {
@@ -11,7 +12,7 @@ class StoreGenreRequest extends FormRequest
      */
     public function authorize(): bool
     {
-        return false;
+        return true;
     }
 
     /**
@@ -22,7 +23,27 @@ class StoreGenreRequest extends FormRequest
     public function rules(): array
     {
         return [
-            //
+            'name' => [
+                'required',
+                'string',
+                'max:255',
+                Rule::unique('genres', 'name'),
+            ],
+        ];
+    }
+
+    /**
+     * Get the validation error messages.
+     *
+     * @return array<string, string>
+     */
+    public function messages(): array
+    {
+        return [
+            'name.required' => 'ジャンル名を入力してください。',
+            'name.string' => 'ジャンル名は文字列で入力してください。',
+            'name.max' => 'ジャンル名は255文字以内で入力してください。',
+            'name.unique' => 'このジャンル名はすでに登録されています。',
         ];
     }
 }

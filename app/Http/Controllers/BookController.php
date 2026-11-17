@@ -2,8 +2,11 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Requests\StoreBookRequest;
+use App\Http\Requests\UpdateBookRequest;
 use App\Models\Book;
-use Illuminate\Http\Request;
+use App\Models\Genre;
+use Illuminate\Support\Facades\DB;
 
 class BookController extends Controller
 {
@@ -13,6 +16,8 @@ class BookController extends Controller
     public function index()
     {
         $books = Book::query()
+            ->with('genres')
+            ->withAvg('reviews', 'rating')
             ->latest()
             ->paginate(10);
 
@@ -24,46 +29,99 @@ class BookController extends Controller
      */
     public function create()
     {
-        //
+        $genres = Genre::query()
+            ->orderBy('name')
+            ->get();
+
+        return view('books.create', compact('genres'));
     }
 
     /**
      * Store a newly created resource in storage.
      */
-    public function store(Request $request)
+    public function store(StoreBookRequest $request)
     {
-        //
+        $validated = $request->validated();
+
+        $genreIds = $validated['genres'];
+        unset($validated['genres']);
+
+        $validated['user_id'] = $request->user()->id;
+
+        DB::transaction(function () use ($validated, $genreIds) {
+            $book = Book::create($validated);
+
+            $book->genres()->attach($genreIds);
+        });
+
+        return redirect()
+            ->route('books.index')
+            ->with('success', '書籍を登録しました。');
     }
 
     /**
      * Display the specified resource.
      */
-    public function show(string $id)
+    public function show(Book $book)
     {
-        //
+        $book->load([
+            'user',
+            'genres',
+            'reviews.user',
+            'reviews.likedByUsers',
+        ]);
+
+        return view('books.show', compact('book'));
     }
 
     /**
      * Show the form for editing the specified resource.
      */
-    public function edit(string $id)
+    public function edit(Book $book)
     {
-        //
+        $this->authorize('update', $book);
+
+        $book->load('genres');
+
+        $genres = Genre::query()
+            ->orderBy('name')
+            ->get();
+
+        return view('books.edit', compact('book', 'genres'));
     }
 
     /**
      * Update the specified resource in storage.
      */
-    public function update(Request $request, string $id)
+    public function update(UpdateBookRequest $request, Book $book)
     {
-        //
+        $validated = $request->validated();
+
+        $genreIds = $validated['genres'];
+        unset($validated['genres']);
+
+        DB::transaction(function () use ($book, $validated, $genreIds) {
+            $book->update($validated);
+
+            $book->genres()->sync($genreIds);
+        });
+
+        return redirect()
+            ->route('books.show', $book)
+            ->with('success', '書籍を更新しました。');
     }
 
     /**
      * Remove the specified resource from storage.
      */
-    public function destroy(string $id)
+    public function destroy(Book $book)
     {
-        //
+        $this->authorize('delete', $book);
+
+        $book->delete();
+
+        return redirect()
+            ->route('books.index')
+            ->with('success', '書籍を削除しました。');
     }
 }
