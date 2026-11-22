@@ -44,7 +44,7 @@ class BookController extends Controller
             });
         }
 
-        $perPage = (int) ($validated['per_page'] ?? 10);
+        $perPage = (int) ($validated['per_page'] ?? 20);
 
         $books = $query
             ->orderByDesc('books.created_at')

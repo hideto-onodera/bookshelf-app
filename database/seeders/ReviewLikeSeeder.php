@@ -60,16 +60,27 @@ class ReviewLikeSeeder extends Seeder
         }
 
         foreach ($reviews as $index => $review) {
-            // 0〜3人のいいねを順番に割り当てる
+            // 各レビューに0〜3人のいいねを割り当てる
             $likeCount = $index % 4;
 
+            // レビュー投稿者本人を除外する
+            $eligibleUsers = [];
+
+            foreach ($emails as $email) {
+                $user = $users->get($email);
+
+                if ($user->id !== $review->user_id) {
+                    $eligibleUsers[] = $user->id;
+                }
+            }
+
+            // 対象ユーザーを順番にずらして選択する
             $userIds = [];
+            $eligibleCount = count($eligibleUsers);
 
             for ($offset = 0; $offset < $likeCount; $offset++) {
-                $userIndex = ($index + $offset) % 5;
-                $email = $emails[$userIndex];
-
-                $userIds[] = $users->get($email)->id;
+                $userIndex = ($index + $offset) % $eligibleCount;
+                $userIds[] = $eligibleUsers[$userIndex];
             }
 
             $review->likedByUsers()->syncWithoutDetaching($userIds);

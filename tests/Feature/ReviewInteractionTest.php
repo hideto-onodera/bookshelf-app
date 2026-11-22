@@ -110,7 +110,7 @@ class ReviewInteractionTest extends TestCase
         ]);
     }
 
-    public function test_review_can_be_posted_without_comment(): void
+    public function test_review_cannot_be_posted_without_comment(): void
     {
         $owner = User::factory()->create();
         $reviewer = User::factory()->create();
@@ -120,14 +120,73 @@ class ReviewInteractionTest extends TestCase
             ->post(route('reviews.store', $book), [
                 'rating' => 4,
             ])
-            ->assertRedirect(route('books.show', $book));
+            ->assertSessionHasErrors([
+                'comment' => 'コメントを入力してください。',
+            ]);
+
+        $this->assertDatabaseMissing('reviews', [
+            'book_id' => $book->id,
+            'user_id' => $reviewer->id,
+        ]);
+    }
+
+    public function test_review_can_be_posted_with_1000_character_comment(): void
+    {
+        $owner = User::factory()->create();
+        $reviewer = User::factory()->create();
+        $book = $this->createBook($owner);
+        $comment = str_repeat('あ', 1000);
+
+        $this->actingAs($reviewer)
+            ->post(route('reviews.store', $book), [
+                'rating' => 5,
+                'comment' => $comment,
+            ])
+            ->assertRedirect(route('books.show', $book))
+            ->assertSessionHas('success', 'レビューを投稿しました。');
 
         $this->assertDatabaseHas('reviews', [
             'book_id' => $book->id,
             'user_id' => $reviewer->id,
-            'rating' => 4,
-            'comment' => null,
+            'rating' => 5,
+            'comment' => $comment,
         ]);
+    }
+
+    public function test_review_cannot_be_posted_with_1001_character_comment(): void
+    {
+        $owner = User::factory()->create();
+        $reviewer = User::factory()->create();
+        $book = $this->createBook($owner);
+
+        $this->actingAs($reviewer)
+            ->post(route('reviews.store', $book), [
+                'rating' => 5,
+                'comment' => str_repeat('あ', 1001),
+            ])
+            ->assertSessionHasErrors([
+                'comment' => 'コメントは1000文字以内で入力してください。',
+            ]);
+
+        $this->assertDatabaseMissing('reviews', [
+            'book_id' => $book->id,
+            'user_id' => $reviewer->id,
+        ]);
+    }
+
+    public function test_review_post_success_message_is_correct(): void
+    {
+        $owner = User::factory()->create();
+        $reviewer = User::factory()->create();
+        $book = $this->createBook($owner);
+
+        $this->actingAs($reviewer)
+            ->post(route('reviews.store', $book), [
+                'rating' => 4,
+                'comment' => '投稿成功メッセージ確認',
+            ])
+            ->assertRedirect(route('books.show', $book))
+            ->assertSessionHas('success', 'レビューを投稿しました。');
     }
 
     public function test_user_can_like_and_unlike_review(): void

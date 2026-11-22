@@ -42,6 +42,76 @@ class GenreManagementTest extends TestCase
         }
     }
 
+    public function test_authenticated_user_can_create_genre(): void
+    {
+        $user = User::factory()->create();
+
+        $this->actingAs($user)
+            ->post(route('genres.store'), [
+                'name' => '新規登録テストジャンル',
+            ])
+            ->assertSessionHasNoErrors()
+            ->assertRedirect(route('genres.index'))
+            ->assertSessionHas(
+                'success',
+                'ジャンルを登録しました。'
+            );
+
+        $this->assertDatabaseHas('genres', [
+            'name' => '新規登録テストジャンル',
+        ]);
+    }
+
+    public function test_empty_genre_name_cannot_be_created(): void
+    {
+        $user = User::factory()->create();
+
+        $this->actingAs($user)
+            ->post(route('genres.store'), [
+                'name' => '',
+            ])
+            ->assertSessionHasErrors([
+                'name' => 'ジャンル名を入力してください。',
+            ]);
+
+        $this->assertDatabaseMissing('genres', [
+            'name' => '',
+        ]);
+    }
+
+    public function test_duplicate_genre_name_cannot_be_created(): void
+    {
+        $user = User::factory()->create();
+
+        Genre::create([
+            'name' => '登録済みテストジャンル',
+        ]);
+
+        $this->actingAs($user)
+            ->post(route('genres.store'), [
+                'name' => '登録済みテストジャンル',
+            ])
+            ->assertSessionHasErrors([
+                'name' => 'このジャンル名はすでに登録されています。',
+            ]);
+
+        $this->assertSame(
+            1,
+            Genre::where('name', '登録済みテストジャンル')->count()
+        );
+    }
+
+    public function test_guest_cannot_create_genre(): void
+    {
+        $this->post(route('genres.store'), [
+            'name' => 'ゲスト登録禁止テスト',
+        ])->assertRedirect(route('login'));
+
+        $this->assertDatabaseMissing('genres', [
+            'name' => 'ゲスト登録禁止テスト',
+        ]);
+    }
+
     public function test_authenticated_user_can_view_genre_details(): void
     {
         $user = User::factory()->create();

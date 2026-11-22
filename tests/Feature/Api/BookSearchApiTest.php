@@ -215,6 +215,28 @@ class BookSearchApiTest extends TestCase
             ->assertJsonPath('meta.current_page', 1);
     }
 
+    public function test_pagination_defaults_to_twenty_books(): void
+    {
+        $user = User::factory()->create();
+
+        for ($i = 1; $i <= 21; $i++) {
+            $this->createBook(
+                $user,
+                'デフォルト件数テスト書籍'.$i,
+                '著者',
+                300000 + $i
+            );
+        }
+
+        $response = $this->getJson('/api/v1/books');
+
+        $response->assertOk()
+            ->assertJsonCount(20, 'data')
+            ->assertJsonPath('meta.per_page', 20)
+            ->assertJsonPath('meta.total', 21)
+            ->assertJsonPath('meta.last_page', 2);
+    }
+
     public function test_invalid_page_is_rejected(): void
     {
         $response = $this->getJson(

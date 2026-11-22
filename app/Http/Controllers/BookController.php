@@ -48,14 +48,16 @@ class BookController extends Controller
 
         $validated['user_id'] = $request->user()->id;
 
-        DB::transaction(function () use ($validated, $genreIds) {
+        $book = DB::transaction(function () use ($validated, $genreIds) {
             $book = Book::create($validated);
 
             $book->genres()->attach($genreIds);
+
+            return $book;
         });
 
         return redirect()
-            ->route('books.index')
+            ->route('books.show', $book)
             ->with('success', '書籍を登録しました。');
     }
 

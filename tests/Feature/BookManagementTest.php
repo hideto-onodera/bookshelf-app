@@ -91,11 +91,12 @@ class BookManagementTest extends TestCase
         $user = User::factory()->create();
         $genre = Genre::create(['name' => '登録成功テスト']);
 
-        $this->actingAs($user)
-            ->post(route('books.store'), $this->bookData($genre))
-            ->assertRedirect(route('books.index'));
+        $response = $this->actingAs($user)
+            ->post(route('books.store'), $this->bookData($genre));
 
         $book = Book::where('isbn', '9784000000088')->firstOrFail();
+
+        $response->assertRedirect(route('books.show', $book));
 
         $this->assertSame($user->id, $book->user_id);
 
@@ -184,5 +185,59 @@ class BookManagementTest extends TestCase
         $this->assertTrue(
             $book->genres()->whereKey($newGenre->id)->exists()
         );
+    }
+
+    public function test_authenticated_user_can_open_book_create_page(): void
+    {
+        $user = User::factory()->create();
+        $genre = Genre::create(['name' => '登録画面表示テスト']);
+
+        $this->actingAs($user)
+            ->get(route('books.create'))
+            ->assertOk()
+            ->assertViewIs('books.create')
+            ->assertSee('書籍の登録')
+            ->assertSee($genre->name);
+    }
+
+    public function test_guest_can_open_book_detail_page(): void
+    {
+        $owner = User::factory()->create();
+        $genre = Genre::create(['name' => '詳細画面表示テスト']);
+        $book = $this->createBook($owner, $genre);
+
+        $this->get(route('books.show', $book))
+            ->assertOk()
+            ->assertViewIs('books.show')
+            ->assertSee($book->title)
+            ->assertSee($book->author)
+            ->assertSee($genre->name);
+    }
+
+    public function test_owner_can_open_book_edit_page(): void
+    {
+        $owner = User::factory()->create();
+        $genre = Genre::create(['name' => '編集画面表示テスト']);
+        $book = $this->createBook($owner, $genre);
+
+        $this->actingAs($owner)
+            ->get(route('books.edit', $book))
+            ->assertOk()
+            ->assertViewIs('books.edit')
+            ->assertSee('書籍の編集')
+            ->assertSee($book->title)
+            ->assertSee($genre->name);
+    }
+
+    public function test_other_user_cannot_open_book_edit_page(): void
+    {
+        $owner = User::factory()->create();
+        $otherUser = User::factory()->create();
+        $genre = Genre::create(['name' => '編集画面拒否テスト']);
+        $book = $this->createBook($owner, $genre);
+
+        $this->actingAs($otherUser)
+            ->get(route('books.edit', $book))
+            ->assertForbidden();
     }
 }

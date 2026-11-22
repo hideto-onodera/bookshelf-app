@@ -173,6 +173,70 @@ class ReviewManagementTest extends TestCase
         ]);
     }
 
+    public function test_review_update_requires_comment(): void
+    {
+        $owner = User::factory()->create();
+        $review = $this->createReview($owner);
+
+        $this->actingAs($owner)
+            ->from(route('reviews.edit', $review))
+            ->put(route('reviews.update', $review), [
+                'rating' => 5,
+                'comment' => '',
+            ])
+            ->assertSessionHasErrors([
+                'comment' => 'コメントを入力してください。',
+            ]);
+
+        $this->assertDatabaseHas('reviews', [
+            'id' => $review->id,
+            'rating' => 3,
+            'comment' => '変更前のコメント',
+        ]);
+    }
+
+    public function test_review_update_accepts_1000_character_comment(): void
+    {
+        $owner = User::factory()->create();
+        $review = $this->createReview($owner);
+        $comment = str_repeat('あ', 1000);
+
+        $this->actingAs($owner)
+            ->put(route('reviews.update', $review), [
+                'rating' => 5,
+                'comment' => $comment,
+            ])
+            ->assertRedirect(route('books.show', $review->book_id));
+
+        $this->assertDatabaseHas('reviews', [
+            'id' => $review->id,
+            'rating' => 5,
+            'comment' => $comment,
+        ]);
+    }
+
+    public function test_review_update_rejects_1001_character_comment(): void
+    {
+        $owner = User::factory()->create();
+        $review = $this->createReview($owner);
+
+        $this->actingAs($owner)
+            ->from(route('reviews.edit', $review))
+            ->put(route('reviews.update', $review), [
+                'rating' => 5,
+                'comment' => str_repeat('あ', 1001),
+            ])
+            ->assertSessionHasErrors([
+                'comment' => 'コメントは1000文字以内で入力してください。',
+            ]);
+
+        $this->assertDatabaseHas('reviews', [
+            'id' => $review->id,
+            'rating' => 3,
+            'comment' => '変更前のコメント',
+        ]);
+    }
+
     public function test_review_update_rejects_invalid_rating(): void
     {
         $owner = User::factory()->create();
