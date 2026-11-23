@@ -32,6 +32,7 @@ ER図の関連ファイル：
 
 - [ER図（SVG形式）](docs/BookShelf_ER図_基本要件.svg)
 - [ER図（Mermaid記法）](docs/BookShelf_ER図_基本要件.md)
+- [ER図（基本要件＋応用要件 統合版）](docs/BookShelf_ER図_基本応用統合版.md)
 
 主なテーブルは以下のとおりです。
 
