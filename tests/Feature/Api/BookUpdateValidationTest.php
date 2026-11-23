@@ -7,6 +7,7 @@ use App\Models\Genre;
 use App\Models\User;
 use Illuminate\Foundation\Testing\DatabaseTransactions;
 use Illuminate\Support\Facades\DB;
+use Laravel\Sanctum\Sanctum;
 use RuntimeException;
 use Tests\TestCase;
 
@@ -55,18 +56,14 @@ class BookUpdateValidationTest extends TestCase
         ]);
     }
 
-    private function validPayload(
-        User $user,
-        Genre $genre,
-        string $isbn
-    ): array {
+    private function validPayload(Genre $genre, string $isbn): array
+    {
         return [
             'title' => '更新後の書籍',
             'author' => '更新後の著者',
             'isbn' => $isbn,
             'published_date' => '2026-02-01',
             'description' => '更新後の説明',
-            'user_id' => $user->id,
             'genres' => [$genre->id],
         ];
     }
@@ -81,18 +78,15 @@ class BookUpdateValidationTest extends TestCase
         $book = $this->createBook($user, '9784000111101');
         $other = $this->createBook($user, '9784000111102');
 
+        Sanctum::actingAs($user);
+
         $payload = $this->validPayload(
-            $user,
             $genre,
             $other->isbn
         );
 
-        $response = $this->putJson(
-            '/api/v1/books/'.$book->id,
-            $payload
-        );
-
-        $response->assertUnprocessable()
+        $this->putJson('/api/v1/books/'.$book->id, $payload)
+            ->assertUnprocessable()
             ->assertJsonValidationErrors(['isbn']);
 
         $this->assertDatabaseHas('books', [
@@ -111,20 +105,17 @@ class BookUpdateValidationTest extends TestCase
 
         $book = $this->createBook($user, '9784000111103');
 
+        Sanctum::actingAs($user);
+
         $payload = $this->validPayload(
-            $user,
             $genre,
             $book->isbn
         );
 
         $payload['genres'] = [999999999];
 
-        $response = $this->putJson(
-            '/api/v1/books/'.$book->id,
-            $payload
-        );
-
-        $response->assertUnprocessable()
+        $this->putJson('/api/v1/books/'.$book->id, $payload)
+            ->assertUnprocessable()
             ->assertJsonValidationErrors(['genres.0']);
 
         $this->assertDatabaseHas('books', [
@@ -138,18 +129,13 @@ class BookUpdateValidationTest extends TestCase
         $user = User::factory()->create();
         $book = $this->createBook($user, '9784000111104');
 
-        $response = $this->putJson(
-            '/api/v1/books/'.$book->id,
-            []
-        );
+        Sanctum::actingAs($user);
 
-        $response->assertUnprocessable()
+        $this->putJson('/api/v1/books/'.$book->id, [])
+            ->assertUnprocessable()
             ->assertJsonValidationErrors([
                 'title',
                 'author',
-                'isbn',
-                'published_date',
-                'user_id',
                 'genres',
             ]);
 

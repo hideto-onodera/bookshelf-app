@@ -6,22 +6,90 @@ use App\Http\Requests\StoreBookRequest;
 use App\Http\Requests\UpdateBookRequest;
 use App\Models\Book;
 use App\Models\Genre;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Validation\Rule;
 
 class BookController extends Controller
 {
     /**
      * Display a listing of the resource.
      */
-    public function index()
+    public function index(Request $request)
     {
-        $books = Book::query()
-            ->with('genres')
-            ->withAvg('reviews', 'rating')
-            ->latest()
-            ->paginate(10);
+        $validated = $request->validate([
+            'keyword' => ['nullable', 'string', 'max:255'],
+            'genre' => [
+                'nullable',
+                'integer',
+                Rule::exists('genres', 'id'),
+            ],
+            'sort' => [
+                'nullable',
+                Rule::in(['latest', 'oldest', 'title', 'rating']),
+            ],
+        ]);
 
-        return view('books.index', compact('books'));
+        $keyword = $validated['keyword'] ?? null;
+        $genreId = $validated['genre'] ?? null;
+        $sort = $validated['sort'] ?? 'latest';
+
+        $query = Book::query()
+            ->with('genres')
+            ->withAvg('reviews', 'rating');
+
+        if ($keyword !== null && $keyword !== '') {
+            $query->where(function ($query) use ($keyword) {
+                $query->where('title', 'like', '%'.$keyword.'%')
+                    ->orWhere('author', 'like', '%'.$keyword.'%');
+            });
+        }
+
+        if ($genreId !== null) {
+            $query->whereHas('genres', function ($query) use ($genreId) {
+                $query->where('genres.id', $genreId);
+            });
+        }
+
+        switch ($sort) {
+            case 'oldest':
+                $query->orderBy('books.created_at')
+                    ->orderBy('books.id');
+                break;
+
+            case 'title':
+                $query->orderBy('books.title')
+                    ->orderBy('books.id');
+                break;
+
+            case 'rating':
+                $query->orderByRaw(
+                    'CASE WHEN reviews_avg_rating IS NULL THEN 1 ELSE 0 END'
+                )
+                    ->orderByDesc('reviews_avg_rating')
+                    ->orderBy('books.id');
+                break;
+
+            case 'latest':
+            default:
+                $query->orderByDesc('books.created_at')
+                    ->orderByDesc('books.id');
+                break;
+        }
+
+        $books = $query->paginate(10)->withQueryString();
+
+        $genres = Genre::query()
+            ->orderBy('name')
+            ->get();
+
+        return view('books.index', compact(
+            'books',
+            'genres',
+            'keyword',
+            'genreId',
+            'sort'
+        ));
     }
 
     /**

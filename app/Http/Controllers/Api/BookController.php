@@ -12,6 +12,7 @@ use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
 use Illuminate\Http\Response;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Gate;
 
 class BookController extends Controller
 {
@@ -75,10 +76,14 @@ class BookController extends Controller
      */
     public function store(StoreBookRequest $request): JsonResponse
     {
+        Gate::authorize('create', Book::class);
+
         $validated = $request->validated();
 
         $genreIds = $validated['genres'];
-        unset($validated['genres']);
+        unset($validated['genres'], $validated['user_id']);
+
+        $validated['user_id'] = $request->user()->id;
 
         $book = DB::transaction(function () use ($validated, $genreIds) {
             $book = Book::create($validated);
@@ -102,10 +107,12 @@ class BookController extends Controller
      */
     public function update(UpdateBookRequest $request, Book $book): BookResource
     {
+        Gate::authorize('update', $book);
+
         $validated = $request->validated();
 
         $genreIds = $validated['genres'];
-        unset($validated['genres']);
+        unset($validated['genres'], $validated['user_id']);
 
         DB::transaction(function () use ($book, $validated, $genreIds) {
             $book->update($validated);
@@ -125,6 +132,8 @@ class BookController extends Controller
      */
     public function destroy(Book $book): Response
     {
+        Gate::authorize('delete', $book);
+
         $book->delete();
 
         return response()->noContent();

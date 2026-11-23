@@ -27,12 +27,12 @@ class StoreBookRequest extends FormRequest
             'title' => ['required', 'string', 'max:255'],
             'author' => ['required', 'string', 'max:255'],
             'isbn' => [
-                'required',
+                'nullable',
                 'string',
                 'regex:/^[0-9]{13}$/',
                 Rule::unique('books', 'isbn'),
             ],
-            'published_date' => ['required', 'date'],
+            'published_date' => ['nullable', 'date'],
             'description' => ['nullable', 'string'],
             'image_url' => ['nullable', 'url'],
             'genres' => ['required', 'array', 'min:1'],
@@ -61,12 +61,10 @@ class StoreBookRequest extends FormRequest
             'author.string' => '著者名は文字列で入力してください。',
             'author.max' => '著者名は255文字以内で入力してください。',
 
-            'isbn.required' => 'ISBNを入力してください。',
             'isbn.string' => 'ISBNは文字列で入力してください。',
             'isbn.regex' => 'ISBNは13桁の数字で入力してください。',
             'isbn.unique' => 'このISBNはすでに登録されています。',
 
-            'published_date.required' => '出版日を入力してください。',
             'published_date.date' => '有効な出版日を入力してください。',
 
             'description.string' => '説明は文字列で入力してください。',

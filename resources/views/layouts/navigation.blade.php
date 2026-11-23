@@ -34,6 +34,32 @@
                         </x-nav-link>
                     @endif
 
+                    @auth
+                        @if (Route::has('reading-plans.index'))
+                            <x-nav-link :href="route('reading-plans.index')" :active="request()->routeIs('reading-plans.*')">
+                                {{ __('読書計画') }}
+                            </x-nav-link>
+                        @endif
+
+                        @if (Route::has('reading-reports.index'))
+                            <x-nav-link :href="route('reading-reports.index')" :active="request()->routeIs('reading-reports.*')">
+                                {{ __('マイ読書レポート') }}
+                            </x-nav-link>
+                        @endif
+
+                        @if (Route::has('notifications.index'))
+                            <x-nav-link :href="route('notifications.index')" :active="request()->routeIs('notifications.*')">
+                                <svg class="mr-1 inline-block h-5 w-5" xmlns="http://www.w3.org/2000/svg"
+                                    fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8"
+                                    aria-hidden="true">
+                                    <path stroke-linecap="round" stroke-linejoin="round"
+                                        d="M18 8a6 6 0 0 0-12 0c0 7-3 7-3 9h18c0-2-3-2-3-9M10 21h4" />
+                                </svg>
+                                {{ __('通知一覧') }}
+                            </x-nav-link>
+                        @endif
+                    @endauth
+
                     @if (Route::has('genres.index'))
                         <x-nav-link :href="route('genres.index')" :active="request()->routeIs('genres.*')">
                             {{ __('ジャンル管理') }}
@@ -86,7 +112,7 @@
                     <svg class="h-6 w-6" stroke="currentColor" fill="none" viewBox="0 0 24 24">
                         <path :class="{'hidden': open, 'inline-flex': ! open }"
                             class="inline-flex" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                            d="M4 6h16M4 12h16M4 18h-16" />
+                            d="M4 6h16M4 12h16M4 18h16" />
                         <path :class="{'hidden': ! open, 'inline-flex': open }"
                             class="hidden" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                             d="M6 18L18 6M6 6l12 12" />
@@ -120,6 +146,32 @@
                     {{ __('お気に入り') }}
                 </x-responsive-nav-link>
             @endif
+
+            @auth
+                @if (Route::has('reading-plans.index'))
+                    <x-responsive-nav-link :href="route('reading-plans.index')" :active="request()->routeIs('reading-plans.*')">
+                        {{ __('読書計画') }}
+                    </x-responsive-nav-link>
+                @endif
+
+                @if (Route::has('reading-reports.index'))
+                    <x-responsive-nav-link :href="route('reading-reports.index')" :active="request()->routeIs('reading-reports.*')">
+                        {{ __('マイ読書レポート') }}
+                    </x-responsive-nav-link>
+                @endif
+
+                @if (Route::has('notifications.index'))
+                    <x-responsive-nav-link :href="route('notifications.index')" :active="request()->routeIs('notifications.*')">
+                        <svg class="mr-1 inline-block h-5 w-5" xmlns="http://www.w3.org/2000/svg"
+                            fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8"
+                            aria-hidden="true">
+                            <path stroke-linecap="round" stroke-linejoin="round"
+                                d="M18 8a6 6 0 0 0-12 0c0 7-3 7-3 9h18c0-2-3-2-3-9M10 21h4" />
+                        </svg>
+                        {{ __('通知一覧') }}
+                    </x-responsive-nav-link>
+                @endif
+            @endauth
 
             @if (Route::has('genres.index'))
                 <x-responsive-nav-link :href="route('genres.index')" :active="request()->routeIs('genres.*')">

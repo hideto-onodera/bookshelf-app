@@ -1,4 +1,3 @@
-
 <x-app-layout>
     <x-slot name="header">
         <h2 class="font-semibold text-xl text-gray-800 leading-tight">
@@ -22,10 +21,91 @@
                 </div>
             @endif
 
+            <div class="bg-white shadow-sm sm:rounded-lg mb-6">
+                <div class="p-6">
+                    <h3 class="text-lg font-semibold text-gray-900 mb-4">
+                        書籍を検索
+                    </h3>
+
+                    <form method="GET" action="{{ route('books.index') }}" class="space-y-4">
+                        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                            <div>
+                                <label for="keyword" class="block text-sm font-medium text-gray-700 mb-1">
+                                    キーワード
+                                </label>
+                                <input
+                                    type="text"
+                                    id="keyword"
+                                    name="keyword"
+                                    value="{{ $keyword }}"
+                                    maxlength="255"
+                                    placeholder="書籍名・著者名"
+                                    class="w-full border-gray-300 rounded-md shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
+                                >
+                            </div>
+
+                            <div>
+                                <label for="genre" class="block text-sm font-medium text-gray-700 mb-1">
+                                    ジャンル
+                                </label>
+                                <select
+                                    id="genre"
+                                    name="genre"
+                                    class="w-full border-gray-300 rounded-md shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
+                                >
+                                    <option value="">すべてのジャンル</option>
+                                    @foreach ($genres as $genre)
+                                        <option
+                                            value="{{ $genre->id }}"
+                                            @selected((string) $genreId === (string) $genre->id)
+                                        >
+                                            {{ $genre->name }}
+                                        </option>
+                                    @endforeach
+                                </select>
+                            </div>
+
+                            <div>
+                                <label for="sort" class="block text-sm font-medium text-gray-700 mb-1">
+                                    並び順
+                                </label>
+                                <select
+                                    id="sort"
+                                    name="sort"
+                                    class="w-full border-gray-300 rounded-md shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
+                                >
+                                    <option value="latest" @selected($sort === 'latest')>新しい順</option>
+                                    <option value="oldest" @selected($sort === 'oldest')>古い順</option>
+                                    <option value="title" @selected($sort === 'title')>タイトル順</option>
+                                    <option value="rating" @selected($sort === 'rating')>評価の高い順</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <div class="flex flex-wrap gap-3">
+                            <button
+                                type="submit"
+                                class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-5 rounded"
+                            >
+                                検索
+                            </button>
+                            <a
+                                href="{{ route('books.index') }}"
+                                class="inline-flex items-center bg-gray-200 hover:bg-gray-300 text-gray-800 font-bold py-2 px-5 rounded"
+                            >
+                                条件をクリア
+                            </a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+
             <div class="bg-white overflow-hidden shadow-sm sm:rounded-lg">
                 <div class="p-6 text-gray-900">
                     @if ($books->isEmpty())
-                        <p class="text-gray-500">書籍が登録されていません。</p>
+                        <p class="text-gray-500">
+                            条件に一致する書籍がありません。
+                        </p>
                     @else
                         <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                             @foreach ($books as $book)

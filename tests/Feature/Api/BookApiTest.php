@@ -7,6 +7,7 @@ use App\Models\Genre;
 use App\Models\User;
 use Illuminate\Foundation\Testing\DatabaseTransactions;
 use Illuminate\Support\Facades\DB;
+use Laravel\Sanctum\Sanctum;
 use RuntimeException;
 use Tests\TestCase;
 
@@ -55,7 +56,7 @@ class BookApiTest extends TestCase
         ]);
     }
 
-    private function bookPayload(User $user, Genre $genre, string $isbn): array
+    private function bookPayload(Genre $genre, string $isbn): array
     {
         return [
             'title' => 'API登録テスト書籍',
@@ -64,7 +65,6 @@ class BookApiTest extends TestCase
             'published_date' => '2026-02-01',
             'description' => 'APIから登録した書籍です。',
             'image_url' => 'https://example.com/book.jpg',
-            'user_id' => $user->id,
             'genres' => [$genre->id],
         ];
     }
@@ -74,9 +74,8 @@ class BookApiTest extends TestCase
         $user = User::factory()->create();
         $book = $this->createBook($user);
 
-        $response = $this->getJson('/api/v1/books');
-
-        $response->assertOk()
+        $this->getJson('/api/v1/books')
+            ->assertOk()
             ->assertJsonFragment([
                 'id' => $book->id,
                 'title' => 'APIテスト用書籍',
@@ -88,23 +87,23 @@ class BookApiTest extends TestCase
         $user = User::factory()->create();
         $book = $this->createBook($user);
 
-        $response = $this->getJson('/api/v1/books/'.$book->id);
-
-        $response->assertOk()
+        $this->getJson('/api/v1/books/'.$book->id)
+            ->assertOk()
             ->assertJsonPath('data.id', $book->id)
             ->assertJsonPath('data.title', 'APIテスト用書籍');
     }
 
-    public function test_guest_can_create_book(): void
+    public function test_authenticated_user_can_create_book(): void
     {
         $user = User::factory()->create();
         $genre = Genre::create(['name' => 'API登録テストジャンル']);
 
-        $payload = $this->bookPayload($user, $genre, '9784000000002');
+        Sanctum::actingAs($user);
 
-        $response = $this->postJson('/api/v1/books', $payload);
+        $payload = $this->bookPayload($genre, '9784000000002');
 
-        $response->assertCreated()
+        $this->postJson('/api/v1/books', $payload)
+            ->assertCreated()
             ->assertJsonPath('data.title', 'API登録テスト書籍');
 
         $this->assertDatabaseHas('books', [
@@ -120,26 +119,25 @@ class BookApiTest extends TestCase
         ]);
     }
 
-    public function test_guest_can_update_book(): void
+    public function test_owner_can_update_book(): void
     {
         $user = User::factory()->create();
         $genre = Genre::create(['name' => 'API更新テストジャンル']);
         $book = $this->createBook($user);
 
-        $payload = $this->bookPayload($user, $genre, $book->isbn);
+        Sanctum::actingAs($user);
+
+        $payload = $this->bookPayload($genre, $book->isbn);
         $payload['title'] = 'API更新後の書籍';
 
-        $response = $this->putJson(
-            '/api/v1/books/'.$book->id,
-            $payload
-        );
-
-        $response->assertOk()
+        $this->putJson('/api/v1/books/'.$book->id, $payload)
+            ->assertOk()
             ->assertJsonPath('data.title', 'API更新後の書籍');
 
         $this->assertDatabaseHas('books', [
             'id' => $book->id,
             'title' => 'API更新後の書籍',
+            'user_id' => $user->id,
         ]);
 
         $this->assertDatabaseHas('book_genre', [
@@ -148,14 +146,15 @@ class BookApiTest extends TestCase
         ]);
     }
 
-    public function test_guest_can_delete_book(): void
+    public function test_owner_can_delete_book(): void
     {
         $user = User::factory()->create();
         $book = $this->createBook($user);
 
-        $response = $this->deleteJson('/api/v1/books/'.$book->id);
+        Sanctum::actingAs($user);
 
-        $response->assertNoContent();
+        $this->deleteJson('/api/v1/books/'.$book->id)
+            ->assertNoContent();
 
         $this->assertDatabaseMissing('books', [
             'id' => $book->id,
@@ -164,15 +163,13 @@ class BookApiTest extends TestCase
 
     public function test_create_book_requires_valid_fields(): void
     {
-        $response = $this->postJson('/api/v1/books', []);
+        Sanctum::actingAs(User::factory()->create());
 
-        $response->assertUnprocessable()
+        $this->postJson('/api/v1/books', [])
+            ->assertUnprocessable()
             ->assertJsonValidationErrors([
                 'title',
                 'author',
-                'isbn',
-                'published_date',
-                'user_id',
                 'genres',
             ]);
     }
@@ -184,11 +181,123 @@ class BookApiTest extends TestCase
 
         $this->createBook($user, '9784000000003');
 
-        $payload = $this->bookPayload($user, $genre, '9784000000003');
+        Sanctum::actingAs($user);
 
-        $response = $this->postJson('/api/v1/books', $payload);
+        $payload = $this->bookPayload($genre, '9784000000003');
 
-        $response->assertUnprocessable()
+        $this->postJson('/api/v1/books', $payload)
+            ->assertUnprocessable()
             ->assertJsonValidationErrors(['isbn']);
+    }
+
+    public function test_guest_cannot_create_book(): void
+    {
+        $genre = Genre::create(['name' => '未認証登録テスト']);
+
+        $this->postJson(
+            '/api/v1/books',
+            $this->bookPayload($genre, '9784000000004')
+        )->assertUnauthorized();
+    }
+
+    public function test_guest_cannot_update_book(): void
+    {
+        $user = User::factory()->create();
+        $book = $this->createBook($user);
+
+        $this->putJson('/api/v1/books/'.$book->id, [])
+            ->assertUnauthorized();
+    }
+
+    public function test_guest_cannot_delete_book(): void
+    {
+        $user = User::factory()->create();
+        $book = $this->createBook($user);
+
+        $this->deleteJson('/api/v1/books/'.$book->id)
+            ->assertUnauthorized();
+
+        $this->assertDatabaseHas('books', [
+            'id' => $book->id,
+        ]);
+    }
+
+    public function test_other_user_cannot_update_book(): void
+    {
+        $owner = User::factory()->create();
+        $otherUser = User::factory()->create();
+        $book = $this->createBook($owner);
+        $genre = Genre::create(['name' => '他人更新禁止テスト']);
+
+        Sanctum::actingAs($otherUser);
+
+        $payload = $this->bookPayload($genre, $book->isbn);
+        $payload['title'] = '不正な更新';
+
+        $this->putJson('/api/v1/books/'.$book->id, $payload)
+            ->assertForbidden();
+
+        $this->assertDatabaseHas('books', [
+            'id' => $book->id,
+            'title' => 'APIテスト用書籍',
+            'user_id' => $owner->id,
+        ]);
+    }
+
+    public function test_other_user_cannot_delete_book(): void
+    {
+        $owner = User::factory()->create();
+        $otherUser = User::factory()->create();
+        $book = $this->createBook($owner);
+
+        Sanctum::actingAs($otherUser);
+
+        $this->deleteJson('/api/v1/books/'.$book->id)
+            ->assertForbidden();
+
+        $this->assertDatabaseHas('books', [
+            'id' => $book->id,
+        ]);
+    }
+
+    public function test_create_book_ignores_forged_user_id(): void
+    {
+        $user = User::factory()->create();
+        $otherUser = User::factory()->create();
+        $genre = Genre::create(['name' => '登録者改ざん防止テスト']);
+
+        Sanctum::actingAs($user);
+
+        $payload = $this->bookPayload($genre, '9784000000005');
+        $payload['user_id'] = $otherUser->id;
+
+        $this->postJson('/api/v1/books', $payload)
+            ->assertCreated();
+
+        $this->assertDatabaseHas('books', [
+            'isbn' => '9784000000005',
+            'user_id' => $user->id,
+        ]);
+    }
+
+    public function test_update_book_ignores_forged_user_id(): void
+    {
+        $user = User::factory()->create();
+        $otherUser = User::factory()->create();
+        $book = $this->createBook($user);
+        $genre = Genre::create(['name' => '更新者改ざん防止テスト']);
+
+        Sanctum::actingAs($user);
+
+        $payload = $this->bookPayload($genre, $book->isbn);
+        $payload['user_id'] = $otherUser->id;
+
+        $this->putJson('/api/v1/books/'.$book->id, $payload)
+            ->assertOk();
+
+        $this->assertDatabaseHas('books', [
+            'id' => $book->id,
+            'user_id' => $user->id,
+        ]);
     }
 }

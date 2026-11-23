@@ -9,7 +9,7 @@ class StoreBookRequest extends FormRequest
 {
     public function authorize(): bool
     {
-        return true;
+        return $this->user() !== null;
     }
 
     public function rules(): array
@@ -18,19 +18,14 @@ class StoreBookRequest extends FormRequest
             'title' => ['required', 'string', 'max:255'],
             'author' => ['required', 'string', 'max:255'],
             'isbn' => [
-                'required',
+                'nullable',
                 'string',
                 'regex:/^[0-9]{13}$/',
                 Rule::unique('books', 'isbn'),
             ],
-            'published_date' => ['required', 'date'],
+            'published_date' => ['nullable', 'date'],
             'description' => ['nullable', 'string'],
             'image_url' => ['nullable', 'url'],
-            'user_id' => [
-                'required',
-                'integer',
-                Rule::exists('users', 'id'),
-            ],
             'genres' => ['required', 'array', 'min:1'],
             'genres.*' => [
                 'required',
@@ -52,20 +47,14 @@ class StoreBookRequest extends FormRequest
             'author.string' => '著者名は文字列で入力してください。',
             'author.max' => '著者名は255文字以内で入力してください。',
 
-            'isbn.required' => 'ISBNを入力してください。',
             'isbn.string' => 'ISBNは文字列で入力してください。',
             'isbn.regex' => 'ISBNは13桁の数字で入力してください。',
             'isbn.unique' => 'このISBNはすでに登録されています。',
 
-            'published_date.required' => '出版日を入力してください。',
             'published_date.date' => '有効な出版日を入力してください。',
 
             'description.string' => '説明は文字列で入力してください。',
             'image_url.url' => '画像URLは正しいURL形式で入力してください。',
-
-            'user_id.required' => '登録者IDを指定してください。',
-            'user_id.integer' => '登録者IDは整数で指定してください。',
-            'user_id.exists' => '指定された登録者は存在しません。',
 
             'genres.required' => 'ジャンルを1つ以上指定してください。',
             'genres.array' => 'ジャンルは配列で指定してください。',
