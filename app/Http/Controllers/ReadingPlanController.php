@@ -15,6 +15,9 @@ use Illuminate\View\View;
 
 class ReadingPlanController extends Controller
 {
+    /**
+     * ログインユーザーの読書計画を状態で絞り込み、一覧表示する。
+     */
     public function index(Request $request): View
     {
         $this->authorize('viewAny', ReadingPlan::class);
@@ -47,6 +50,9 @@ class ReadingPlanController extends Controller
         ]);
     }
 
+    /**
+     * 読書計画の新規登録画面を表示する。
+     */
     public function create(): View
     {
         $this->authorize('create', ReadingPlan::class);
@@ -59,6 +65,9 @@ class ReadingPlanController extends Controller
         return view('reading-plans.create', compact('books'));
     }
 
+    /**
+     * 検証済みの入力値から進行中の読書計画を登録する。
+     */
     public function store(StoreReadingPlanRequest $request): RedirectResponse
     {
         $validated = $request->validated();
@@ -77,6 +86,9 @@ class ReadingPlanController extends Controller
             ->with('success', '読書計画を登録しました。');
     }
 
+    /**
+     * 更新権限を確認し、読書計画の編集画面を表示する。
+     */
     public function edit(ReadingPlan $readingPlan): View
     {
         $this->authorize('update', $readingPlan);
@@ -86,6 +98,10 @@ class ReadingPlanController extends Controller
         return view('reading-plans.edit', compact('readingPlan'));
     }
 
+    /**
+     * 読書計画の期限を更新する。
+     * 期限切れ計画の再開時は、同じ書籍の進行中計画との重複を防ぐ。
+     */
     public function update(
         UpdateReadingPlanRequest $request,
         ReadingPlan $readingPlan
@@ -120,6 +136,9 @@ class ReadingPlanController extends Controller
             ->with('success', '読書計画を更新しました。');
     }
 
+    /**
+     * 読書計画を完了状態にし、完了日時を記録する。
+     */
     public function complete(ReadingPlan $readingPlan): RedirectResponse
     {
         $this->authorize('complete', $readingPlan);
@@ -136,6 +155,9 @@ class ReadingPlanController extends Controller
             ->with('success', '読書計画を完了しました。');
     }
 
+    /**
+     * 読書計画と関連する期限通知をトランザクション内で削除する。
+     */
     public function destroy(ReadingPlan $readingPlan): RedirectResponse
     {
         $this->authorize('delete', $readingPlan);

@@ -191,7 +191,7 @@ phpMyAdminのポート番号はDocker Composeの設定によって変更され�
 | コード整形 | Laravel Pint |
 | バージョン管理 | Git |
 
-Laravel Sanctumは導入されていますが、基本要件の書籍公開APIは認証なしで利用できる構成です。
+Laravel Sanctumを使用し、書籍公開APIのGET（一覧・詳細）は認証不要、POST・PUT・DELETEはBearerトークンによる認証が必要な構成です。
 
 ## 5. 応用機能
 
@@ -263,9 +263,9 @@ PHP 8.5では `PDO::MYSQL_ATTR_SSL_CA` に関する非推奨警告が出力さ�
 | --- | --- | --- | --- |
 | GET | `/api/v1/books` | 書籍一覧取得・検索 | 不要 |
 | GET | `/api/v1/books/{book}` | 書籍詳細取得 | 不要 |
-| POST | `/api/v1/books` | 書籍新規登録 | 不要 |
-| PUT | `/api/v1/books/{book}` | 書籍更新 | 不要 |
-| DELETE | `/api/v1/books/{book}` | 書籍削除 | 不要 |
+| POST | `/api/v1/books` | 書籍新規登録 | Sanctum認証が必要 |
+| PUT | `/api/v1/books/{book}` | 書籍更新 | Sanctum認証が必要 |
+| DELETE | `/api/v1/books/{book}` | 書籍削除 | Sanctum認証が必要 |
 
 ### APIの主な仕様
 

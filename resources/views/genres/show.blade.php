@@ -31,17 +31,26 @@
                             編集する
                         </a>
 
-                        <form action="{{ route('genres.destroy', $genre) }}"
-                            method="POST"
-                            onsubmit="return confirm('このジャンルを削除しますか？')">
-                            @csrf
-                            @method('DELETE')
+                        @if ($books->total() === 0)
+                            <form action="{{ route('genres.destroy', $genre) }}"
+                                method="POST"
+                                onsubmit="return confirm('このジャンルを削除しますか？')">
+                                @csrf
+                                @method('DELETE')
 
-                            <button type="submit"
-                                class="bg-red-500 hover:bg-red-700 text-white font-bold py-2 px-4 rounded">
+                                <button type="submit"
+                                    class="bg-red-500 hover:bg-red-700 text-white font-bold py-2 px-4 rounded">
+                                    削除する
+                                </button>
+                            </form>
+                        @else
+                            <button type="button"
+                                disabled
+                                title="書籍が紐付いているため削除できません。"
+                                class="bg-gray-300 text-gray-500 font-bold py-2 px-4 rounded cursor-not-allowed">
                                 削除する
                             </button>
-                        </form>
+                        @endif
                     </div>
 
                     <h4 class="text-lg font-semibold mb-4">
